@@ -8,6 +8,8 @@ def telegram_data():
         'id': params.get("id", ["None"])
     }
 
+user_data = telegram_data()
+
 def initialize_game():
     st.session_state.game = {
         'field': [[None for _ in range(5)] for _ in range(5)],
@@ -22,10 +24,9 @@ def initialize_game():
         'revealed': False
     }
 
-# Инициализация состояния
 if 'balance' not in st.session_state:
     st.session_state.balance = 0
-    st.session_state.show_topup = False  # Контроль отображения формы пополнения
+    st.session_state.show_topup = False
 
 if 'game' not in st.session_state:
     initialize_game()
@@ -33,71 +34,41 @@ if 'game' not in st.session_state:
 st.set_page_config(
     page_title="Star Mines",
     page_icon="💣",
+    layout="centered"
 )
 
+# Мобильные стили
 st.markdown("""
 <style>
-    /* Стили для кнопок игрового поля */
-    .minefield-button>button {
-        width: 60px !important;
-        height: 60px !important;
-        margin: 0 auto;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 24px;
-        border-radius: 8px !important;
-        border: 2px solid #4a4a4a !important;
-        padding: 0 !important;
+    /* Основные стили для мобильных */
+    @media (max-width: 768px) {
+        /* Фиксируем размер кнопок */
+        .stButton>button {
+            width: 100% !important;
+            height: 100% !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Центрируем содержимое */
+        .st-emotion-cache-1kyxreq {
+            justify-content: center !important;
+        }
+        
+        /* Уменьшаем отступы */
+        .st-emotion-cache-1y4p8pa {
+            padding: 0.5rem !important;
+        }
     }
     
-    /* Стили для содержимого ячеек */
-    .cell-content {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto;
+    /* Общие стили для ячеек */
+    .cell-container {
+        position: relative;
+        aspect-ratio: 1;
         display: flex;
+        align-items: center;
         justify-content: center;
-        align-items: center;
-        font-size: 24px;
-        border-radius: 8px;
-        border: 2px solid #4a4a4a;
-    }
-    
-    /* Стили для разных состояний ячеек */
-    .mine-cell {
-        background-color: #ffcccc !important;
-    }
-    .safe-cell {
-        background-color: #ccffcc !important;
-    }
-    
-    /* Общие стили */
-    .big-font {
-        font-size: 24px !important;
-        text-align: center;
-    }
-    .game-over {
-        color: red;
-        font-size: 24px;
-        font-weight: bold;
-        text-align: center;
-    }
-    .centered {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .balance-container {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .topup-form {
-        border: 1px solid #ccc;
-        border-radius: 10px;
-        padding: 15px;
-        margin-top: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -109,7 +80,7 @@ def topup_balance(amount):
 
 def start_game():
     if st.session_state.balance < st.session_state.game['bet']:
-        st.error("Недостаточно средств для ставки!")
+        st.error("Недостаточно средств!")
         return
     
     mines = set()
@@ -128,7 +99,6 @@ def start_game():
         'revealed': False
     })
     st.session_state.balance -= st.session_state.game['bet']
-    st.rerun()
 
 def open_cell(row, col):
     if st.session_state.game['first_move']:
@@ -148,154 +118,109 @@ def reveal_all_cells():
 def cash_out():
     win = int(st.session_state.game['bet'] * st.session_state.game['multiplier'])
     st.session_state.balance += win
-    st.success(f"✅ Вы успешно забрали {win} ⭐️")
+    st.success(f"✅ Выигрыш: {win}⭐️")
     initialize_game()
-    st.rerun()
 
 def continue_after_mine():
     initialize_game()
-    st.rerun()
 
-st.title("🌟 Star Mines 💣")
+# Интерфейс
+st.markdown("<h1 style='text-align:center; font-size:1.5rem; margin:5px 0;'>🌟 Star Mines 💣</h1>", unsafe_allow_html=True)
 
-user_data = telegram_data()
-
+# Блок баланса
 with st.container():
-    cols = st.columns([4, 1])
-    with cols[0]:
-        st.subheader(f"@{user_data["name"]}")
-
+    st.markdown(f"<div style='text-align:center; font-size:1.1rem; margin:5px 0;'>@{user_data['name']}</div>", unsafe_allow_html=True)
 with st.container():
-    cols = st.columns([4, 1])
-    with cols[0]:
-        st.subheader(f"💰 Текущий баланс: {st.session_state.balance} ⭐️", divider="rainbow")
-    with cols[1]:
-        if st.session_state.balance > 0 and not st.session_state.game['game_active']:
-            if st.button("➕ Пополнить", key="topup_btn"):
-                st.session_state.show_topup = True
-                st.rerun()
+    st.markdown(f"<div style='text-align:center; font-size:1.1rem; margin:5px 0;'>💰 Баланс: {st.session_state.balance} ⭐️</div>", unsafe_allow_html=True)
+    if st.button("➕ Пополнить", key="topup_btn", use_container_width=True):
+        st.session_state.show_topup = not st.session_state.show_topup
 
-# Форма пополнения баланса
-if st.session_state.get('show_topup', False):
-    with st.form("topup_form", clear_on_submit=True):
-        st.markdown('<div class="topup-form">', unsafe_allow_html=True)
-        amount = st.number_input(
-            "Сумма пополнения (⭐️)",
-            min_value=10,
-            step=5,
-            key="topup_amount"
-        )
-        col1, col2 = st.columns(2)
-        with col1:
+# Форма пополнения
+if st.session_state.show_topup:
+    with st.form("topup_form"):
+        amount = st.number_input("Сумма пополнения (⭐️)", min_value=10, step=5)
+        cols = st.columns(2)
+        with cols[0]:
             if st.form_submit_button("Пополнить"):
                 topup_balance(amount)
-        with col2:
+        with cols[1]:
             if st.form_submit_button("Отмена"):
                 st.session_state.show_topup = False
                 st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
+else:
+    # Блок ставки и игры
+    MIN_BET = 10
+    if not st.session_state.game['game_active']:
+        if st.session_state.balance >= MIN_BET:
+            bet = st.number_input(
+                "Ставка (⭐️)",
+                min_value=MIN_BET,
+                max_value=st.session_state.balance,
+                step=5,
+                key="bet_input"
+            )
+            st.session_state.game['bet'] = bet
+            if st.button("🎮 Начать игру", type="primary", use_container_width=True):
+                start_game()
+        else:
+            st.markdown("<div style='color:red; text-align:center;'>Минимальная ставка 10⭐️</div>", unsafe_allow_html=True)
 
-# Основная кнопка пополнения (только при нулевом балансе)
-if st.session_state.balance == 0 and not st.session_state.game['game_active']:
-    if st.button("➕ Пополнить баланс", key="initial_topup"):
-        st.session_state.show_topup = True
-        st.rerun()
+    # Игровое поле
+    if st.session_state.game['game_active']:
+        st.markdown(f"<div style='text-align:center; font-size:1.2rem; margin:10px 0;'>🔥 Множитель: {st.session_state.game['multiplier']:.1f}x</div>", unsafe_allow_html=True)
+        
+        # Создаем минное поле 5x5
+        for row in range(5):
+            cols = st.columns(5)
+            for col in range(5):
+                with cols[col]:
+                    pos = (row, col)
+                    if pos in st.session_state.game['opened']:
+                        st.markdown(
+                            '<div class="cell-container" style="background-color:#88ff88;">💰</div>', 
+                            unsafe_allow_html=True
+                        )
+                    elif st.session_state.game['revealed'] and pos in st.session_state.game['mines']:
+                        emoji = "💣" if pos == st.session_state.game['mine_position'] else "💥"
+                        bg_color = "#ff4444" if pos == st.session_state.game['mine_position'] else "#ffaaaa"
+                        st.markdown(
+                            f'<div class="cell-container" style="background-color:{bg_color};">{emoji}</div>', 
+                            unsafe_allow_html=True
+                        )
+                    elif st.session_state.game['game_over'] or st.session_state.game['revealed']:
+                        st.markdown(
+                            '<div class="cell-container" style="background-color:#e0e0e0;">🟦</div>', 
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        if st.button(
+                            "🟦",
+                            key=f"cell_{row}_{col}",
+                            on_click=open_cell,
+                            args=(row, col),
+                            use_container_width=True
+                        ):
+                            pass
 
-# Блок ставки (только если баланс достаточен)
-MIN_BET = 10
-if st.session_state.balance >= MIN_BET and not st.session_state.game['game_active']:
-    with st.expander("🛎️ Сделать ставку", expanded=True):
-        bet = st.number_input(
-            "Сумма ставки (⭐️)",
-            min_value=MIN_BET,
-            max_value=st.session_state.balance,
-            step=5,
-            key="bet_input"
-        )
-        st.session_state.game['bet'] = bet
-        if st.button("🎮 Начать игру", key="start_game"):
-            start_game()
-elif st.session_state.balance < MIN_BET and st.session_state.balance > 0 and not st.session_state.game['game_active']:
-    st.markdown('<p class="game-over">Недостаточно средств для минимальной ставки ( 10 ⭐️)</p>', unsafe_allow_html=True)
-
-# Игровое поле
-if st.session_state.game['game_active']:
-    st.write(f"🔥 Текущий множитель: {st.session_state.game['multiplier']:.1f}x")
-    
-    # Контейнер для центрирования поля
-    with st.container():
-        col1, col2, col3 = st.columns([1, 3, 1])
-        with col2:
-            for row in range(5):
-                cols = st.columns(5, gap="small")
-                for col in range(5):
-                    with cols[col]:
-                        if st.session_state.game['revealed']:
-                            if (row, col) in st.session_state.game['mines']:
-                                if (row, col) == st.session_state.game['mine_position']:
-                                    st.markdown(
-                                        '<div class="cell-content mine-cell">💣</div>', 
-                                        unsafe_allow_html=True
-                                    )
-                                else:
-                                    st.markdown(
-                                        '<div class="cell-content mine-cell">💥</div>', 
-                                        unsafe_allow_html=True
-                                    )
-                            elif (row, col) in st.session_state.game['opened']:
-                                st.markdown(
-                                    '<div class="cell-content safe-cell">💰</div>', 
-                                    unsafe_allow_html=True
-                                )
-                            else:
-                                st.markdown(
-                                    '<div class="cell-content">🟦</div>', 
-                                    unsafe_allow_html=True
-                                )
-                        elif st.session_state.game['game_over'] and (row, col) == st.session_state.game['mine_position']:
-                            st.markdown(
-                                '<div class="cell-content mine-cell">💣</div>', 
-                                unsafe_allow_html=True
-                            )
-                        elif (row, col) in st.session_state.game['opened']:
-                            st.markdown(
-                                '<div class="cell-content safe-cell">💰</div>', 
-                                unsafe_allow_html=True
-                            )
-                        else:
-                            st.button(
-                                "🟦",
-                                key=f"cell_{row}_{col}",
-                                on_click=open_cell, 
-                                args=(row, col),
-                                help="Нажмите, чтобы открыть клетку"
-                            )
-    
-    # Кнопки управления
-    if st.session_state.game['game_over']:
-        st.markdown('<p class="game-over">Вы нашли мину! Игра окончена</p>', unsafe_allow_html=True)
-        if st.button("🔄 Продолжить", type="primary", key="continue"):
-            continue_after_mine()
-    elif not st.session_state.game['first_move']:
-        if st.button("🏦 Забрать выигрыш", type="primary", key="cash_out"):
-            cash_out()
+        # Управление игрой
+        if st.session_state.game['game_over']:
+            st.error("💣 Вы нашли мину!")
+            st.button("🔄 Новая игра", type="primary", on_click=continue_after_mine, use_container_width=True)
+        elif not st.session_state.game['first_move']:
+            st.button("🏦 Забрать выигрыш", type="primary", on_click=cash_out, use_container_width=True)
 
 # Правила игры
 with st.expander("📖 Правила игры"):
     st.write("""
     1. Минимальная ставка: 10 ⭐️
     2. Открывайте клетки на поле 5x5
-    3. В безопасных клетках множитель увеличивается на 20%
-    4. При нахождении мины - игра завершается
-    5. Можно забрать выигрыш после первого хода
-    6. 💣 - найденная мина
-    7. 💥 - другие мины на поле
-    8. 💰 - безопасные открытые клетки
-    9. 🟦 - неоткрытые клетки
+    3. Множитель растет на 20% за безопасную клетку
+    4. Найдете мину - игра завершается
+    5. Можно забрать выигрыш в любой момент
     """)
 with st.expander("🔗 Реферальная программа"):
     st.write(f"""
     💬 Приглашай друзей по своей ссылке:\n
-    https://t.me/AppYourSiteBot/?start=id{user_data['id']}\n\n
+    https://t.me/AppYourSiteBot/id={user_data['id']}\n\n
     ✅ И получай бонусы!\n
     """)
