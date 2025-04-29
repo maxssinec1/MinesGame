@@ -82,7 +82,6 @@ def start_game():
     if st.session_state.balance < st.session_state.game['bet']:
         st.error("Недостаточно средств!")
         return
-    st.rerun()
     
     mines = set()
     while len(mines) < 12:
@@ -100,7 +99,8 @@ def start_game():
         'revealed': False
     })
     st.session_state.balance -= st.session_state.game['bet']
-
+    st.rerun()
+    
 def open_cell(row, col):
     if st.session_state.game['first_move']:
         st.session_state.game['first_move'] = False
