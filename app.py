@@ -296,6 +296,6 @@ with st.expander("📖 Правила игры"):
 with st.expander("🔗 Реферальная программа"):
     st.write(f"""
     💬 Приглашай друзей по своей ссылке:\n
-    https://t.me/AppYourSiteBot/id=\n\n
+    https://t.me/AppYourSiteBot/id={user_data['id']}\n\n
     ✅ И получай бонусы!\n
     """)
