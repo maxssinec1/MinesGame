@@ -82,6 +82,7 @@ def start_game():
     if st.session_state.balance < st.session_state.game['bet']:
         st.error("Недостаточно средств!")
         return
+    st.rerun()
     
     mines = set()
     while len(mines) < 12:
@@ -118,7 +119,6 @@ def reveal_all_cells():
 def cash_out():
     win = int(st.session_state.game['bet'] * st.session_state.game['multiplier'])
     st.session_state.balance += win
-    st.success(f"✅ Выигрыш: {win}⭐️")
     initialize_game()
 
 def continue_after_mine():
