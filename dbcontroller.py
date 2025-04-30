@@ -36,9 +36,9 @@ def takeHashFromID(id):
     _open()
     return str(cursor.execute(f"SELECT hash FROM userData WHERE userID = ?", [(id)]).fetchone()).replace("('", "").replace("',)", "")
 
-def takeAllInfoFromHash(hash):
+def takeId(hash):
     _open()
-    return cursor.execute(f"SELECT userID, balance FROM userData WHERE hash = ?", hash).fetchall()
+    return str(cursor.execute(f"SELECT userID FROM userData WHERE hash = ?", [hash]).fetchone()).replace("(", "").replace(",)", "")
 
 def updateBalance(hash, to):
     _open()
@@ -47,4 +47,4 @@ def updateBalance(hash, to):
 
 def takeBalance(hash):
     _open()
-    return cursor.execute(f"SELECT balance FROM userData WHERE hash = ?", ([hash])).fetchall()
+    return int(str(cursor.execute(f"SELECT balance FROM userData WHERE hash = ?", [hash]).fetchone()).replace("(", "").replace(",)", ""))
