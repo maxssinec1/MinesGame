@@ -10,7 +10,7 @@ def telegram_data():
     }
 
 user_info = telegram_data()
-user_data = takeAllInfoFromHash(user_info["hash_token"])
+user_data = takeId(user_info["hash_token"])
 
 if str(user_info['hash_token']) in takeUserList():
     def initialize_game():
@@ -104,6 +104,8 @@ if str(user_info['hash_token']) in takeUserList():
             'revealed': False
         })
         st.session_state.balance -= st.session_state.game['bet']
+        updateBalance(user_info['hash_token'], st.session_state.balance)
+        st.rerun()
 
     def open_cell(row, col):
         if st.session_state.game['first_move']:
@@ -123,7 +125,7 @@ if str(user_info['hash_token']) in takeUserList():
     def cash_out():
         win = int(st.session_state.game['bet'] * st.session_state.game['multiplier'])
         st.session_state.balance += win
-        st.success(f"✅ Выигрыш: {win}⭐️")
+        updateBalance(user_info['hash_token'], st.session_state.balance)
         initialize_game()
 
     def continue_after_mine():
@@ -214,7 +216,11 @@ if str(user_info['hash_token']) in takeUserList():
             elif not st.session_state.game['first_move']:
                 st.button("🏦 Забрать выигрыш", type="primary", on_click=cash_out, use_container_width=True)
 
-    # Правила игры
+    # Экспандеры
+    with st.expander("📋 История игр"):
+        st.write(f"""
+        ⛔️ Совсем скоро!
+        """)
     with st.expander("📖 Правила игры"):
         st.write("""
         1. Минимальная ставка: 10 ⭐️
@@ -222,11 +228,12 @@ if str(user_info['hash_token']) in takeUserList():
         3. Множитель растет на 20% за безопасную клетку
         4. Найдете мину - игра завершается
         5. Можно забрать выигрыш в любой момент
+        6. Не выходите если начали игру, иначе, потеряете ставку
         """)
     with st.expander("🔗 Реферальная программа"):
         st.write(f"""
         💬 Приглашай друзей по своей ссылке:\n
-        https://t.me/AppYourSiteBot/id={user_info[0]}\n\n
+        https://t.me/AppYourSiteBot/id={user_data}\n\n
         ✅ И получай бонусы!\n
         """)
 
